@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Monitoring Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen bg-gray-50">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <i class="bi bi-graph-up text-blue-600 text-2xl"></i>
+                        <span class="ml-2 text-xl font-semibold">App Monitor Dashboard</span>
+                    </div>
+                    <div class="flex items-center">
+                        <button id="refreshBtn" class="flex items-center px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md">
+                            <i class="bi bi-arrow-clockwise mr-2"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Metrics Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm metric-card">
+                    <div class="flex items-center">
+                        <i class="bi bi-cpu text-blue-600 text-xl"></i>
+                        <h3 class="ml-2 text-lg font-medium text-gray-900">CPU Usage</h3>
+                    </div>
+                    <p class="mt-2 text-3xl font-semibold text-gray-900" id="cpuMetric">0%</p>
+                    <div class="mt-2 w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-blue-600 h-2.5 rounded-full" id="cpuBar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm metric-card">
+                    <div class="flex items-center">
+                        <i class="bi bi-memory text-green-600 text-xl"></i>
+                        <h3 class="ml-2 text-lg font-medium text-gray-900">Memory Usage</h3>
+                    </div>
+                    <p class="mt-2 text-3xl font-semibold text-gray-900" id="memoryMetric">0 GB</p>
+                    <div class="mt-2 w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-green-600 h-2.5 rounded-full" id="memoryBar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm metric-card">
+                    <div class="flex items-center">
+                        <i class="bi bi-speedometer2 text-purple-600 text-xl"></i>
+                        <h3 class="ml-2 text-lg font-medium text-gray-900">Network Usage</h3>
+                    </div>
+                    <script>
+                        function updateNetworkMetrics() {
+                            const networkMetric = document.getElementById('networkMetric');
+                            const networkBar = document.getElementById('networkBar');
+                            
+                            if (!navigator.onLine) {
+                                // Set network metrics to 0 when offline
+                                networkMetric.textContent = '0 Mbps';
+                                networkBar.style.width = '0%';
+                            }
+                        }
+
+                        // Add event listener for offline event
+                        window.addEventListener('offline', updateNetworkMetrics);
+                        
+                        // Initial check
+                        updateNetworkMetrics();
+                    </script>
+                    
+                    <div class="absolute top-2 right-2">
+                        <span id="connectionStatus" class="flex items-center">
+                            <i class="bi bi-wifi text-gray-400" id="wifiIcon"></i>
+                            <span class="ml-1 text-xs text-gray-400" id="connectionText">Checking...</span>
+                        </span>
+                    </div>
+                    <script>
+                        function checkInternetConnection() {
+                            const wifiIcon = document.getElementById('wifiIcon');
+                            const connectionText = document.getElementById('connectionText');
+                            
+                            if (navigator.onLine) {
+                                wifiIcon.classList.remove('text-gray-400', 'text-red-500');
+                                wifiIcon.classList.add('text-green-500');
+                                connectionText.textContent = 'Connected';
+                                connectionText.classList.remove('text-gray-400', 'text-red-500');
+                                connectionText.classList.add('text-green-500');
+                            } else {
+                                wifiIcon.classList.remove('text-gray-400', 'text-green-500');
+                                wifiIcon.classList.add('text-red-500');
+                                connectionText.textContent = 'Offline';
+                                connectionText.classList.remove('text-gray-400', 'text-green-500');
+                                connectionText.classList.add('text-red-500');
+                            }
+                        }
+
+                        // Initial check
+                        checkInternetConnection();
+
+                        // Add event listeners for online/offline events
+                        window.addEventListener('online', checkInternetConnection);
+                        window.addEventListener('offline', checkInternetConnection);
+                    </script>
+                    <p class="mt-2 text-3xl font-semibold text-gray-900" id="networkMetric">0 Mbps</p>
+                    <div class="mt-2 w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-purple-600 h-2.5 rounded-full" id="networkBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">CPU Usage Over Time</h3>
+                    <canvas id="cpuChart"></canvas>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Memory Usage Over Time</h3>
+                    <canvas id="memoryChart"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize charts
+        const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+        const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+        
+        const timeLabels = Array.from({length: 10}, (_, i) => `${i} min ago`).reverse();
+        
+        const cpuChart = new Chart(cpuCtx, {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [{
+                    label: 'CPU Usage (%)',
+                    data: Array(10).fill(0),
+                    borderColor: 'rgb(37, 99, 235)',
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        const memoryChart = new Chart(memoryCtx, {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [{
+                    label: 'Memory Usage (GB)',
+                    data: Array(10).fill(0),
+                    borderColor: 'rgb(22, 163, 74)',
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Simulate metrics update
+        function updateMetrics() {
+            // Generate random metrics
+            const cpu = Math.floor(Math.random() * 100);
+            const memory = (Math.random() * 16).toFixed(1);
+            const network = (Math.random() * 1000).toFixed(1);
+
+            // Update metrics display
+            document.getElementById('cpuMetric').textContent = `${cpu}%`;
+            document.getElementById('memoryMetric').textContent = `${memory} GB`;
+            document.getElementById('networkMetric').textContent = `${network} Mbps`;
+
+            // Update progress bars
+            document.getElementById('cpuBar').style.width = `${cpu}%`;
+            document.getElementById('memoryBar').style.width = `${(memory/16)*100}%`;
+            document.getElementById('networkBar').style.width = `${(network/1000)*100}%`;
+
+            // Update charts
+            cpuChart.data.datasets[0].data.shift();
+            cpuChart.data.datasets[0].data.push(cpu);
+            cpuChart.update();
+
+            memoryChart.data.datasets[0].data.shift();
+            memoryChart.data.datasets[0].data.push(memory);
+            memoryChart.update();
+        }
+
+        // Initial update
+        updateMetrics();
+
+        // Update every 2 seconds
+        setInterval(updateMetrics, 2000);
+
+        // Refresh button
+        document.getElementById('refreshBtn').addEventListener('click', updateMetrics);
+    </script>
+</body>
+</html>
